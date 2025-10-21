@@ -137,11 +137,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               description: 'CRM password',
             },
-            TestDate: {
+            "Test Date": {
               type: 'string',
               description: 'Test date (optional)',
             },
-            TestStatus: {
+            "Test Status": {
               type: 'string',
               description: 'Test status (optional)',
             },
@@ -168,8 +168,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description: 'Fields to update',
               properties: {
                 Status: { type: 'string' },
-                TestDate: { type: 'string' },
-                TestStatus: { type: 'string' },
+                "Test Date": { type: 'string' },
+                "Test Status": { type: 'string' },
                 Password: { type: 'string' },
                 CRMPassword: { type: 'string' },
               },
