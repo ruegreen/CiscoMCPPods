@@ -257,10 +257,10 @@ Deploy the server to the cloud for remote AI agents like Webex Connect.
 1. **Update `.env` for production:**
    ```env
    API_BASE_URL=http://apigateway.cxocoe.us
-   API_KEY_RETAIL=your-production-api-key
+   API_KEY_PODS=your-production-api-key
    AUTH_MODE=apikey
    SERVER_PORT=3010
-   SERVER_PATH=/CiscoMCPRetail
+   SERVER_PATH=/CiscoMCPPods
    ```
 
 2. **Ensure .gitignore excludes `.env`:**
@@ -275,15 +275,15 @@ Deploy the server to the cloud for remote AI agents like Webex Connect.
 **Via SCP/SFTP:**
 ```bash
 # Copy project to server
-scp -r CiscoMCPRetail user@your-server:/path/to/apps/
+scp -r CiscoMCPPods user@your-server:/path/to/apps/
 ```
 
 **Via Git:**
 ```bash
 # On your server
 cd /path/to/apps
-git clone your-repo-url CiscoMCPRetail
-cd CiscoMCPRetail
+git clone your-repo-url CiscoMCPPods
+cd CiscoMCPPods
 npm install
 cp .env.example .env
 nano .env  # Edit with your settings
@@ -306,10 +306,10 @@ npm run start:sse
 npm install -g pm2
 
 # Start server with Streamable HTTP
-pm2 start npm --name "mcp-retail-http" -- run start:http
+pm2 start npm --name "mcp-pods-http" -- run start:http
 
 # OR with SSE
-pm2 start npm --name "mcp-retail-sse" -- run start:sse
+pm2 start npm --name "mcp-pods-sse" -- run start:sse
 
 # Save PM2 process list
 pm2 save
@@ -320,16 +320,16 @@ pm2 startup
 
 **For production (with systemd):**
 
-Create `/etc/systemd/system/mcp-retail.service`:
+Create `/etc/systemd/system/mcp-pods.service`:
 ```ini
 [Unit]
-Description=MCP Retail Server (Streamable HTTP)
+Description=MCP Pods Server (Streamable HTTP)
 After=network.target
 
 [Service]
 Type=simple
 User=your-user
-WorkingDirectory=/path/to/CiscoMCPRetail
+WorkingDirectory=/path/to/CiscoMCPPods
 ExecStart=/usr/bin/node src/server-http.js
 Restart=always
 Environment=NODE_ENV=production
@@ -340,9 +340,9 @@ WantedBy=multi-user.target
 
 Enable and start:
 ```bash
-sudo systemctl enable mcp-retail
-sudo systemctl start mcp-retail
-sudo systemctl status mcp-retail
+sudo systemctl enable mcp-pods
+sudo systemctl start mcp-pods
+sudo systemctl status mcp-pods
 ```
 
 ### Step 5: Configure NGINX Reverse Proxy (Optional)
@@ -352,7 +352,7 @@ For Streamable HTTP, create NGINX configuration:
 ```nginx
 server {
     listen 80;
-    server_name ciscomcppods.cxocoe.us ciscomcpretail.cxocoe.us ciscomcphealth.cxocoe.us ciscomcpinsurance.cxocoe.us;
+    server_name ciscomcppods.cxocoe.us ciscomcppods.cxocoe.us ciscomcphealth.cxocoe.us ciscomcpinsurance.cxocoe.us;
 
     # Pods MCP Server (Streamable HTTP)
     location /CiscoMCPPods/ {
@@ -384,7 +384,7 @@ server {
 
 Enable the site:
 ```bash
-sudo ln -s /etc/nginx/sites-available/mcp-retail /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/mcp-pods /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -601,12 +601,12 @@ CiscoMCPPods/
 **Server Disconnected:**
 ```bash
 # Check logs
-tail -f ~/Library/Logs/Claude/mcp-server-cisco-retail.log
+tail -f ~/Library/Logs/Claude/mcp-server-cisco-pods.log
 
 # Common fixes:
 # 1. Use Node.js 18+ (check path in config)
 # 2. Use absolute paths in claude_desktop_config.json
-# 3. Ensure .env file exists with API_KEY_RETAIL
+# 3. Ensure .env file exists with API_KEY_PODS
 ```
 
 **API Authentication Errors:**
@@ -632,8 +632,8 @@ netstat -tulpn | grep 1013
 ps aux | grep server-http.js
 
 # Check server logs
-journalctl -u mcp-retail -f  # if using systemd
-pm2 logs mcp-retail          # if using PM2
+journalctl -u mcp-pods -f  # if using systemd
+pm2 logs mcp-pods          # if using PM2
 ```
 
 **Session Issues (Streamable HTTP):**
@@ -686,7 +686,7 @@ To run Pods, Healthcare, Insurance, and Retail MCP servers together:
 1. **Each server has its own directory:**
    ```
    CiscoMCPPods/       (Port 1013)
-   CiscoMCPRetail/     (Port 3010)
+   CiscoMCPPods/     (Port 3010)
    CiscoMCPHealthcare/ (Port 3011)
    CiscoMCPInsurance/  (Port 3012)
    ```
@@ -713,7 +713,7 @@ To run Pods, Healthcare, Insurance, and Retail MCP servers together:
 
 4. **Register each with WxConnect (with API key authentication):**
    - Pods: `http://ciscomcppods.cxocoe.us/CiscoMCPPods/mcp`
-   - Retail: `http://ciscomcpretail.cxocoe.us/CiscoMCPRetail/mcp`
+   - Retail: `http://ciscomcppods.cxocoe.us/CiscoMCPPods/mcp`
    - Healthcare: `http://ciscomcphealth.cxocoe.us/CiscoMCPHealthcare/mcp`
    - Insurance: `http://ciscomcpinsurance.cxocoe.us/CiscoMCPInsurance/mcp`
 
