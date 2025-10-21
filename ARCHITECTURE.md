@@ -687,15 +687,17 @@ User asks AI Agent: "What's the status of order ORD-123?"
                              ▼
           ┌─────────────────────────────────────────────┐
           │  Cisco API Gateway                          │
-          │  GET /customer/ORD-123                      │
+          │  GET /pod/ciscolivepods/1                   │
           │                                             │
           │  Returns:                                   │
           │  {                                          │
-          │    "orderId": "ORD-123",                    │
-          │    "phoneNumber": "+13033249089",           │
-          │    "fName": "John",                         │
-          │    "lName": "Doe",                          │
-          │    "deliveryStatus": "In Transit",          │
+          │    "Number": 1,                             │
+          │    "POD": "Pod1",                           │
+          │    "AdminLogin": "admin1@coelab.wbx.ai",    │
+          │    "AgentLogin": "agent1@coelab.wbx.ai",    │
+          │    "Status": "assigned",                    │
+          │    "Test Date": "Oct 16, 2025 09:45 AM",    │
+          │    "Test Status": "working",                │
           │    ...                                      │
           │  }                                          │
           └──────────────────┬──────────────────────────┘
