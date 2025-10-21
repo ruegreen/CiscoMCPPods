@@ -1,0 +1,1133 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Cisco MCP Servers - Complete Test Suite",
+		"description": "Comprehensive test collection for all three Cisco MCP servers (Retail, Healthcare, Insurance) with both production and local environment support.\n\n## Features:\n- Health checks for all servers\n- MCP protocol testing (initialize, list tools, call tools)\n- Production and local environment support\n- Automated tests and assertions\n- Session management\n\n## Setup:\n1. Import this collection into Postman\n2. Configure environment variables or use collection variables\n3. Run requests individually or use Collection Runner\n\n## Authentication:\nAll MCP endpoints require X-API-Key header authentication.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Retail Server",
+			"item": [
+				{
+					"name": "Production (ciscomcpretail.cxocoe.us)",
+					"item": [
+						{
+							"name": "Health Check",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has status field\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('status');",
+											"    pm.expect(jsonData.status).to.eql('healthy');",
+											"});",
+											"",
+											"pm.test(\"Service name is correct\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.service).to.eql('cisco-mcp-retail');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://ciscomcpretail.cxocoe.us/CiscoMCPRetail/health",
+									"protocol": "http",
+									"host": [
+										"ciscomcpretail",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPRetail",
+										"health"
+									]
+								},
+								"description": "Check if the Retail MCP server is healthy and running"
+							},
+							"response": []
+						},
+						{
+							"name": "Initialize Session",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has session ID in headers\", function () {",
+											"    pm.expect(pm.response.headers.get('Mcp-Session-Id')).to.exist;",
+											"    pm.collectionVariables.set('retail_prod_session_id', pm.response.headers.get('Mcp-Session-Id'));",
+											"});",
+											"",
+											"pm.test(\"Response has serverInfo\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.result).to.have.property('serverInfo');",
+											"    pm.expect(jsonData.result.serverInfo.name).to.eql('cisco-mcp-retail');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{retail_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2024-11-05\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"Postman Test Client\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcpretail.cxocoe.us/CiscoMCPRetail/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcpretail",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPRetail",
+										"mcp"
+									]
+								},
+								"description": "Initialize a new MCP session and get session ID"
+							},
+							"response": []
+						},
+						{
+							"name": "List Tools",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response contains tools array\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.result).to.have.property('tools');",
+											"    pm.expect(jsonData.result.tools).to.be.an('array');",
+											"});",
+											"",
+											"pm.test(\"Has expected retail tools\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var toolNames = jsonData.result.tools.map(t => t.name);",
+											"    pm.expect(toolNames).to.include('get_customer');",
+											"    pm.expect(toolNames).to.include('get_all_customers');",
+											"    pm.expect(toolNames).to.include('create_customer');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{retail_prod_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{retail_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcpretail.cxocoe.us/CiscoMCPRetail/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcpretail",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPRetail",
+										"mcp"
+									]
+								},
+								"description": "Get list of available tools from Retail MCP server"
+							},
+							"response": []
+						},
+						{
+							"name": "Call Tool - Get All Customers",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response contains content\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.result).to.have.property('content');",
+											"    pm.expect(jsonData.result.content).to.be.an('array');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{retail_prod_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{retail_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_all_customers\",\n    \"arguments\": {\n      \"limit\": 5\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcpretail.cxocoe.us/CiscoMCPRetail/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcpretail",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPRetail",
+										"mcp"
+									]
+								},
+								"description": "Call the get_all_customers tool to retrieve retail customers"
+							},
+							"response": []
+						},
+						{
+							"name": "List Resources",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response contains resources array\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.result).to.have.property('resources');",
+											"    pm.expect(jsonData.result.resources).to.be.an('array');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{retail_prod_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{retail_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 4,\n  \"method\": \"resources/list\",\n  \"params\": {}\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcpretail.cxocoe.us/CiscoMCPRetail/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcpretail",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPRetail",
+										"mcp"
+									]
+								},
+								"description": "Get list of available resources"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Local (localhost:3010)",
+					"item": [
+						{
+							"name": "Health Check",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has status field\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData).to.have.property('status');",
+											"    pm.expect(jsonData.status).to.eql('healthy');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3010/CiscoMCPRetail/health",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3010",
+									"path": [
+										"CiscoMCPRetail",
+										"health"
+									]
+								},
+								"description": "Check local Retail MCP server health"
+							},
+							"response": []
+						},
+						{
+							"name": "Initialize Session",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has session ID\", function () {",
+											"    pm.expect(pm.response.headers.get('Mcp-Session-Id')).to.exist;",
+											"    pm.collectionVariables.set('retail_local_session_id', pm.response.headers.get('Mcp-Session-Id'));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{retail_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2024-11-05\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"Postman Test Client\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:3010/CiscoMCPRetail/mcp",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3010",
+									"path": [
+										"CiscoMCPRetail",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Tools",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{retail_local_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{retail_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+								},
+								"url": {
+									"raw": "http://localhost:3010/CiscoMCPRetail/mcp",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3010",
+									"path": [
+										"CiscoMCPRetail",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Healthcare Server",
+			"item": [
+				{
+					"name": "Production (ciscomcphealth.cxocoe.us)",
+					"item": [
+						{
+							"name": "Health Check",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Service name is correct\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.service).to.eql('cisco-mcp-healthcare');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://ciscomcphealth.cxocoe.us/CiscoMCPHealthcare/health",
+									"protocol": "http",
+									"host": [
+										"ciscomcphealth",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPHealthcare",
+										"health"
+									]
+								},
+								"description": "Check Healthcare MCP server health"
+							},
+							"response": []
+						},
+						{
+							"name": "Initialize Session",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has session ID\", function () {",
+											"    pm.expect(pm.response.headers.get('Mcp-Session-Id')).to.exist;",
+											"    pm.collectionVariables.set('healthcare_prod_session_id', pm.response.headers.get('Mcp-Session-Id'));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{healthcare_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2024-11-05\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"Postman Test Client\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcphealth.cxocoe.us/CiscoMCPHealthcare/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcphealth",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPHealthcare",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Tools",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{healthcare_prod_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{healthcare_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcphealth.cxocoe.us/CiscoMCPHealthcare/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcphealth",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPHealthcare",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Call Tool - Get All Patients",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{healthcare_prod_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{healthcare_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_all_patients\",\n    \"arguments\": {\n      \"limit\": 5\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcphealth.cxocoe.us/CiscoMCPHealthcare/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcphealth",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPHealthcare",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Local (localhost:3011)",
+					"item": [
+						{
+							"name": "Health Check",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3011/CiscoMCPHealthcare/health",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3011",
+									"path": [
+										"CiscoMCPHealthcare",
+										"health"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Initialize Session",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has session ID\", function () {",
+											"    pm.expect(pm.response.headers.get('Mcp-Session-Id')).to.exist;",
+											"    pm.collectionVariables.set('healthcare_local_session_id', pm.response.headers.get('Mcp-Session-Id'));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{healthcare_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2024-11-05\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"Postman Test Client\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:3011/CiscoMCPHealthcare/mcp",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3011",
+									"path": [
+										"CiscoMCPHealthcare",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Tools",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{healthcare_local_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{healthcare_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+								},
+								"url": {
+									"raw": "http://localhost:3011/CiscoMCPHealthcare/mcp",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3011",
+									"path": [
+										"CiscoMCPHealthcare",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Insurance Server",
+			"item": [
+				{
+					"name": "Production (ciscomcpinsurance.cxocoe.us)",
+					"item": [
+						{
+							"name": "Health Check",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Service name is correct\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.service).to.eql('cisco-mcp-insurance');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://ciscomcpinsurance.cxocoe.us/CiscoMCPInsurance/health",
+									"protocol": "http",
+									"host": [
+										"ciscomcpinsurance",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPInsurance",
+										"health"
+									]
+								},
+								"description": "Check Insurance MCP server health"
+							},
+							"response": []
+						},
+						{
+							"name": "Initialize Session",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has session ID\", function () {",
+											"    pm.expect(pm.response.headers.get('Mcp-Session-Id')).to.exist;",
+											"    pm.collectionVariables.set('insurance_prod_session_id', pm.response.headers.get('Mcp-Session-Id'));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{insurance_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2024-11-05\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"Postman Test Client\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcpinsurance.cxocoe.us/CiscoMCPInsurance/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcpinsurance",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPInsurance",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Tools",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{insurance_prod_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{insurance_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcpinsurance.cxocoe.us/CiscoMCPInsurance/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcpinsurance",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPInsurance",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Call Tool - Get All Claims",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{insurance_prod_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{insurance_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_all_claims\",\n    \"arguments\": {\n      \"limit\": 5\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://ciscomcpinsurance.cxocoe.us/CiscoMCPInsurance/mcp",
+									"protocol": "http",
+									"host": [
+										"ciscomcpinsurance",
+										"cxocoe",
+										"us"
+									],
+									"path": [
+										"CiscoMCPInsurance",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Local (localhost:3012)",
+					"item": [
+						{
+							"name": "Health Check",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3012/CiscoMCPInsurance/health",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3012",
+									"path": [
+										"CiscoMCPInsurance",
+										"health"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Initialize Session",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response has session ID\", function () {",
+											"    pm.expect(pm.response.headers.get('Mcp-Session-Id')).to.exist;",
+											"    pm.collectionVariables.set('insurance_local_session_id', pm.response.headers.get('Mcp-Session-Id'));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{insurance_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2024-11-05\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"Postman Test Client\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "http://localhost:3012/CiscoMCPInsurance/mcp",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3012",
+									"path": [
+										"CiscoMCPInsurance",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Tools",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json, text/event-stream"
+									},
+									{
+										"key": "Mcp-Session-Id",
+										"value": "{{insurance_local_session_id}}"
+									},
+									{
+										"key": "X-API-Key",
+										"value": "{{insurance_mcp_api_key}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+								},
+								"url": {
+									"raw": "http://localhost:3012/CiscoMCPInsurance/mcp",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3012",
+									"path": [
+										"CiscoMCPInsurance",
+										"mcp"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "retail_mcp_api_key",
+			"value": "b4ae5b83b412a620f5d509a9ed1d0ed02718f7fef6ed2cd72a4090ae0d9f4b79",
+			"type": "string"
+		},
+		{
+			"key": "healthcare_mcp_api_key",
+			"value": "4e1ae90d9ffddbb9940a8e2b80d9b40e0c7ff7fc7f21625ea99226c612a74066",
+			"type": "string"
+		},
+		{
+			"key": "insurance_mcp_api_key",
+			"value": "b0b702567dcf095da6b939f6f77319b18c6dbb1bf9f84c3cee2b3a459d6b2031",
+			"type": "string"
+		},
+		{
+			"key": "retail_prod_session_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "retail_local_session_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "healthcare_prod_session_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "healthcare_local_session_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "insurance_prod_session_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "insurance_local_session_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

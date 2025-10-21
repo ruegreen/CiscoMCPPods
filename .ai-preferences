@@ -1,0 +1,15 @@
+# AI Assistant Preferences for this Repository
+
+## Git Commit Guidelines
+- Do NOT add "Generated with Claude Code" or similar AI attribution lines
+- Do NOT add "Co-Authored-By: Claude" or similar co-author lines
+- Keep commit messages clean, professional, and focused on the changes
+- Use conventional commit format when appropriate
+
+## Code Style
+- Follow existing code patterns in the repository
+- Maintain consistency with current documentation style
+
+## General
+- This is a professional project repository
+- Maintain clean git history without AI tool attribution

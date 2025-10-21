@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/pkademad/Library/**)",
+      "Bash(node --version)",
+      "Bash(pkill:*)",
+      "Bash(osascript:*)",
+      "Bash(open:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

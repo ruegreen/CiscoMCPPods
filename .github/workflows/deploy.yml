@@ -1,0 +1,25 @@
+name: Auto Deploy to Server
+
+on:
+  push:
+    branches: [ main ]  # Change to your main branch name if different (like master)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Deploy to server
+      run: |
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} "
+          cd /srv/CiscoMCPRetail &&
+          git pull origin main &&
+          pm2 restart 10
+        "

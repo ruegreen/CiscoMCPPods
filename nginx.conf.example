@@ -1,0 +1,338 @@
+# NGINX Configuration for Cisco MCP Servers
+#
+# This configuration provides reverse proxy for three MCP servers:
+# - Retail (port 3010)
+# - Healthcare (port 3011)
+# - Insurance (port 3012)
+#
+# Supports both SSE and Streamable HTTP transports
+#
+# Copy this to your NGINX sites-available directory and customize for your setup.
+
+server {
+    listen 80;
+    # Multiple server names for each MCP service
+    server_name ciscomcpretail.cxocoe.us ciscomcphealth.cxocoe.us ciscomcpinsurance.cxocoe.us;
+
+    # Logging
+    access_log /var/log/nginx/mcp-servers-access.log;
+    error_log /var/log/nginx/mcp-servers-error.log;
+
+    # ========================================
+    # MCP RETAIL SERVER (Port 3010)
+    # ========================================
+
+    # Retail MCP endpoints - supports both SSE and Streamable HTTP
+    location /CiscoMCPRetail/ {
+        proxy_pass http://localhost:3010/CiscoMCPRetail/;
+        proxy_http_version 1.1;
+
+        # Required for Streamable HTTP session management
+        proxy_set_header Mcp-Session-Id $http_mcp_session_id;
+        proxy_set_header Last-Event-Id $http_last_event_id;
+
+        # Required for API key authentication
+        proxy_set_header X-API-Key $http_x_api_key;
+
+        # Required for WebSocket upgrade (Streamable HTTP)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+
+        # Standard proxy headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Cache control for SSE/Streamable HTTP
+        proxy_set_header Cache-Control 'no-cache';
+
+        # Timeouts for long-lived connections
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_connect_timeout 75s;
+
+        # Disable buffering for streaming (both SSE and Streamable HTTP)
+        proxy_buffering off;
+        proxy_cache off;
+        chunked_transfer_encoding off;
+    }
+
+    # ========================================
+    # MCP HEALTHCARE SERVER (Port 3011)
+    # ========================================
+
+    # Healthcare MCP endpoints - supports both SSE and Streamable HTTP
+    location /CiscoMCPHealthcare/ {
+        proxy_pass http://localhost:3011/CiscoMCPHealthcare/;
+        proxy_http_version 1.1;
+
+        # Required for Streamable HTTP session management
+        proxy_set_header Mcp-Session-Id $http_mcp_session_id;
+        proxy_set_header Last-Event-Id $http_last_event_id;
+
+        # Required for API key authentication
+        proxy_set_header X-API-Key $http_x_api_key;
+
+        # Required for WebSocket upgrade (Streamable HTTP)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+
+        # Standard proxy headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Cache control for SSE/Streamable HTTP
+        proxy_set_header Cache-Control 'no-cache';
+
+        # Timeouts for long-lived connections
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_connect_timeout 75s;
+
+        # Disable buffering for streaming (both SSE and Streamable HTTP)
+        proxy_buffering off;
+        proxy_cache off;
+        chunked_transfer_encoding off;
+    }
+
+    # ========================================
+    # MCP INSURANCE SERVER (Port 3012)
+    # ========================================
+
+    # Insurance MCP endpoints - supports both SSE and Streamable HTTP
+    location /CiscoMCPInsurance/ {
+        proxy_pass http://localhost:3012/CiscoMCPInsurance/;
+        proxy_http_version 1.1;
+
+        # Required for Streamable HTTP session management
+        proxy_set_header Mcp-Session-Id $http_mcp_session_id;
+        proxy_set_header Last-Event-Id $http_last_event_id;
+
+        # Required for API key authentication
+        proxy_set_header X-API-Key $http_x_api_key;
+
+        # Required for WebSocket upgrade (Streamable HTTP)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+
+        # Standard proxy headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Cache control for SSE/Streamable HTTP
+        proxy_set_header Cache-Control 'no-cache';
+
+        # Timeouts for long-lived connections
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_connect_timeout 75s;
+
+        # Disable buffering for streaming (both SSE and Streamable HTTP)
+        proxy_buffering off;
+        proxy_cache off;
+        chunked_transfer_encoding off;
+    }
+
+    # ========================================
+    # ROOT ENDPOINT
+    # ========================================
+
+    # Root endpoint - returns server info
+    location = / {
+        # You can choose which server to proxy to, or create a custom response
+        # For now, proxying to Retail server
+        proxy_pass http://localhost:3010/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# ========================================
+# OPTIONAL: HTTPS CONFIGURATION
+# ========================================
+# Uncomment and configure SSL certificates when ready for production
+
+# server {
+#     listen 443 ssl http2;
+#     server_name your-domain.com;
+#
+#     # SSL Configuration
+#     ssl_certificate /path/to/ssl/certificate.crt;
+#     ssl_certificate_key /path/to/ssl/private.key;
+#     ssl_protocols TLSv1.2 TLSv1.3;
+#     ssl_ciphers HIGH:!aNULL:!MD5;
+#
+#     # Logging
+#     access_log /var/log/nginx/mcp-servers-ssl-access.log;
+#     error_log /var/log/nginx/mcp-servers-ssl-error.log;
+#
+#     # MCP Retail endpoints - supports both SSE and Streamable HTTP
+#     location /CiscoMCPRetail/ {
+#         proxy_pass http://localhost:3010/CiscoMCPRetail/;
+#         proxy_http_version 1.1;
+#
+#         # Required for Streamable HTTP session management
+#         proxy_set_header Mcp-Session-Id $http_mcp_session_id;
+#         proxy_set_header Last-Event-Id $http_last_event_id;
+#
+#         # Required for WebSocket upgrade (Streamable HTTP)
+#         proxy_set_header Upgrade $http_upgrade;
+#         proxy_set_header Connection 'upgrade';
+#
+#         # Standard proxy headers
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#
+#         # Cache control for SSE/Streamable HTTP
+#         proxy_set_header Cache-Control 'no-cache';
+#
+#         # Timeouts for long-lived connections
+#         proxy_read_timeout 3600s;
+#         proxy_send_timeout 3600s;
+#         proxy_connect_timeout 75s;
+#
+#         # Disable buffering for streaming (both SSE and Streamable HTTP)
+#         proxy_buffering off;
+#         proxy_cache off;
+#         chunked_transfer_encoding off;
+#     }
+#
+#     # MCP Healthcare endpoints
+#     location /CiscoMCPHealthcare/ {
+#         proxy_pass http://localhost:3011/CiscoMCPHealthcare/;
+#         proxy_http_version 1.1;
+#
+#         # Required for Streamable HTTP session management
+#         proxy_set_header Mcp-Session-Id $http_mcp_session_id;
+#         proxy_set_header Last-Event-Id $http_last_event_id;
+#
+#         # Required for WebSocket upgrade (Streamable HTTP)
+#         proxy_set_header Upgrade $http_upgrade;
+#         proxy_set_header Connection 'upgrade';
+#
+#         # Standard proxy headers
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#
+#         # Cache control for SSE/Streamable HTTP
+#         proxy_set_header Cache-Control 'no-cache';
+#
+#         # Timeouts for long-lived connections
+#         proxy_read_timeout 3600s;
+#         proxy_send_timeout 3600s;
+#         proxy_connect_timeout 75s;
+#
+#         # Disable buffering for streaming
+#         proxy_buffering off;
+#         proxy_cache off;
+#         chunked_transfer_encoding off;
+#     }
+#
+#     # MCP Insurance endpoints
+#     location /CiscoMCPInsurance/ {
+#         proxy_pass http://localhost:3012/CiscoMCPInsurance/;
+#         proxy_http_version 1.1;
+#
+#         # Required for Streamable HTTP session management
+#         proxy_set_header Mcp-Session-Id $http_mcp_session_id;
+#         proxy_set_header Last-Event-Id $http_last_event_id;
+#
+#         # Required for WebSocket upgrade (Streamable HTTP)
+#         proxy_set_header Upgrade $http_upgrade;
+#         proxy_set_header Connection 'upgrade';
+#
+#         # Standard proxy headers
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#
+#         # Cache control for SSE/Streamable HTTP
+#         proxy_set_header Cache-Control 'no-cache';
+#
+#         # Timeouts for long-lived connections
+#         proxy_read_timeout 3600s;
+#         proxy_send_timeout 3600s;
+#         proxy_connect_timeout 75s;
+#
+#         # Disable buffering for streaming
+#         proxy_buffering off;
+#         proxy_cache off;
+#         chunked_transfer_encoding off;
+#     }
+#
+#     # Root endpoint
+#     location = / {
+#         proxy_pass http://localhost:3010/;
+#         proxy_http_version 1.1;
+#         proxy_set_header Host $host;
+#     }
+# }
+
+# ========================================
+# CONFIGURATION NOTES
+# ========================================
+#
+# 1. Transport Modes Supported:
+#    - SSE (Legacy):          /{path}/sse
+#    - Streamable HTTP (New): /{path}/mcp
+#    Both transports work with this configuration!
+#
+# 2. Server Ports:
+#    - Retail:     localhost:3010 -> /CiscoMCPRetail/
+#    - Healthcare: localhost:3011 -> /CiscoMCPHealthcare/
+#    - Insurance:  localhost:3012 -> /CiscoMCPInsurance/
+#
+# 3. MCP Endpoints for each server:
+#    SSE Transport:
+#      - SSE:      /{path}/sse
+#      - Messages: /{path}/messages
+#      - Health:   /{path}/health
+#
+#    Streamable HTTP Transport (Recommended):
+#      - MCP:      /{path}/mcp (handles POST, GET, DELETE)
+#      - Health:   /{path}/health
+#
+# 4. WxConnect Registration URLs (after NGINX setup):
+#    SSE (Legacy):
+#      - Retail:     http://your-server-ip/CiscoMCPRetail/sse
+#      - Healthcare: http://your-server-ip/CiscoMCPHealthcare/sse
+#      - Insurance:  http://your-server-ip/CiscoMCPInsurance/sse
+#
+#    Streamable HTTP (Recommended):
+#      - Retail:     http://your-server-ip/CiscoMCPRetail/mcp
+#      - Healthcare: http://your-server-ip/CiscoMCPHealthcare/mcp
+#      - Insurance:  http://your-server-ip/CiscoMCPInsurance/mcp
+#
+# 5. Critical Headers for Streamable HTTP:
+#    - Mcp-Session-Id: Enables session tracking and management
+#    - Last-Event-Id:  Enables connection resumability and event replay
+#    Without these headers, Streamable HTTP will not work properly!
+#
+# 6. To enable this configuration:
+#    sudo cp nginx.conf.example /etc/nginx/sites-available/mcp-servers
+#    sudo ln -s /etc/nginx/sites-available/mcp-servers /etc/nginx/sites-enabled/
+#    sudo nginx -t
+#    sudo systemctl reload nginx
+#
+# 7. Start your MCP servers:
+#    For SSE:             npm run start:sse
+#    For Streamable HTTP: npm run start:http (Recommended)
+#
+# 8. Make sure all three MCP servers are running:
+#    - Retail server on port 3010
+#    - Healthcare server on port 3011
+#    - Insurance server on port 3012
+#
