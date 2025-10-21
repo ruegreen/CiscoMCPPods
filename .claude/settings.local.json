@@ -5,7 +5,11 @@
       "Bash(node --version)",
       "Bash(pkill:*)",
       "Bash(osascript:*)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "Read(//Users/ruegreen/Library/Application Support/Claude/**)",
+      "Bash(/Users/ruegreen/.nvm/versions/node/v18.20.8/bin/node:*)",
+      "Bash(npm install:*)",
+      "Bash(timeout 3 /Users/ruegreen/.nvm/versions/node/v18.20.8/bin/node:*)"
     ],
     "deny": [],
     "ask": []
